@@ -183,7 +183,8 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
                       + ", beds=" + o.getNbLits()
                       + ", from " + o.getDateDebut()
                       + " to " + o.getDateFin()
-                      + ", price=" + o.getPrix());
+                      + ", price=" + o.getPrix()
+                      + ", image=" + o.getImageUrl());
               idx++;
             }
           }

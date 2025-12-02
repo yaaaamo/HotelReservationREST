@@ -33,6 +33,8 @@ public class Chambre {
   @OneToMany(mappedBy = "chambre", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<Reservation> reservations = new ArrayList<>();
 
+  private String imageUrl;
+
   public Chambre() {}
 
   public Chambre(String numero, String typeChambre, int nombreLits, double prixParNuit) {
@@ -40,6 +42,14 @@ public class Chambre {
     this.typeChambre = typeChambre;
     this.nombreLits = nombreLits;
     this.prixParNuit = prixParNuit;
+  }
+
+  public String getImageUrl() {
+    return imageUrl;
+  }
+
+  public void setImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
   }
 
 

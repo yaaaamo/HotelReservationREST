@@ -95,6 +95,7 @@ public class HotelController {
         String roomCode = "R" + c.getNumero();
         String offerId = hotelCode + "-" + roomCode;
         offer.setOfferId(offerId);
+        offer.setImageUrl(c.getImageUrl());
 
 
         offers.add(offer);

@@ -42,13 +42,15 @@ public class DataInitializer {
   @Value("${hotel.longitude}")
   private Double hotelLng;
 
+  @Value("${hotel.image-url}")
+  private String roomImageUrl;
+
   @Bean
   CommandLineRunner initDatabase(HotelRepository hotelRepo) {
     return args -> {
 
       if (hotelRepo.count() == 0) {
 
-        // créer l’hôtel spécifique
         Hotel hotel = new Hotel(
                 hotelName,
                 hotelStars,
@@ -60,15 +62,29 @@ public class DataInitializer {
                 hotelLng
         );
 
-        // ajouter les mêmes chambres pour tous les hôtels
+        //  créer les chambres
+        Chambre c101 = new Chambre("101", "SIMPLE", 1, 80.0);
+        Chambre c102 = new Chambre("102", "SIMPLE", 1, 80.0);
+        Chambre c201 = new Chambre("201", "DOUBLE", 2, 120.0);
+        Chambre c202 = new Chambre("202", "DOUBLE", 2, 120.0);
+        Chambre c301 = new Chambre("301", "SUITE", 2, 200.0);
+        Chambre c401 = new Chambre("401", "FAMILIALE", 4, 250.0);
 
-        hotel.addChambre(new Chambre("101", "SIMPLE", 1, 80.0));
-        hotel.addChambre(new Chambre("102", "SIMPLE", 1, 80.0));
-        hotel.addChambre(new Chambre("201", "DOUBLE", 2, 120.0));
-        hotel.addChambre(new Chambre("202", "DOUBLE", 2, 120.0));
-        hotel.addChambre(new Chambre("301", "SUITE", 2, 200.0));
-        hotel.addChambre(new Chambre("401", "FAMILIALE", 4, 250.0));
+        // même image pour tout le monde
+        c101.setImageUrl(roomImageUrl);
+        c102.setImageUrl(roomImageUrl);
+        c201.setImageUrl(roomImageUrl);
+        c202.setImageUrl(roomImageUrl);
+        c301.setImageUrl(roomImageUrl);
+        c401.setImageUrl(roomImageUrl);
 
+        // les rattacher à l’hôtel
+        hotel.addChambre(c101);
+        hotel.addChambre(c102);
+        hotel.addChambre(c201);
+        hotel.addChambre(c202);
+        hotel.addChambre(c301);
+        hotel.addChambre(c401);
 
         hotelRepo.save(hotel);
 
@@ -78,18 +94,14 @@ public class DataInitializer {
       }
     };
   }
+
   @Bean
   CommandLineRunner initAgencies(AgencyRepository agencyRepo) {
     return args -> {
       if (agencyRepo.count() == 0) {
-        // AGENCY1 : 10% reduction
         agencyRepo.save(new Agency("AGENCE1", "Agence Paris", "secret1", 0.90));
-
-        // AGENCY2 : 20% reduction
         agencyRepo.save(new Agency("AGENCE2", "Agence Lyon", "secret2", 0.80));
       }
     };
   }
-
-
 }

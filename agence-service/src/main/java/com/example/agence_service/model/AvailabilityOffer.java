@@ -12,6 +12,10 @@ public class AvailabilityOffer {
   private LocalDate dateDebut;
   private LocalDate dateFin;
   private double prix;
+  private String imageUrl;
+
+  public String getImageUrl() { return imageUrl; }
+  public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
   public String getOfferId() { return offerId; }
   public void setOfferId(String offerId) { this.offerId = offerId; }
