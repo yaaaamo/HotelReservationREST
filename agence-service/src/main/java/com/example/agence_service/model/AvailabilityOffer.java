@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class AvailabilityOffer {
 
-  private String offerId;   // "H1-R101"
+  private String offerId;
 
   private Long hotelId;
   private String hotelName;

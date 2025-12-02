@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class HotelRestClientCLI extends AbstractMain implements CommandLineRunner {
@@ -32,14 +31,20 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
   @Value("${hotel2.base-url}")
   private String hotel2BaseUrl;
 
+  @Value("${agence.id}")
+  private String agenceId;
+
+  @Value("${agence.password}")
+  private String agencePassword;
+
+
   private IntegerInputProcessor inputProcessor;
 
   private static String URI_HOTELS;
 
-  // list of partner hotel base URLs
+
   private List<String> partnerBaseUrls;
 
-  // to remember from which hotel each offer comes
   private static class PartnerOffer {
     String baseUrl;
     AvailabilityOffer offer;
@@ -60,10 +65,10 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
     try {
       inputReader = new BufferedReader(new InputStreamReader(System.in));
 
-      // init partner URLs (agency knows its partners, no question to the user)
+
       partnerBaseUrls = Arrays.asList(hotel1BaseUrl, hotel2BaseUrl);
 
-      // we keep URI_HOTELS using the first hotel (for options 1 and 2)
+
       SERVICE_URL = hotel1BaseUrl;
       URI_HOTELS = SERVICE_URL + "/hotels";
 
@@ -124,7 +129,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
           break;
         }
 
-        // ========= WS1 : consulter disponibilités (TOUS LES HOTELS PARTENAIRES) =========
+
         case "3": {
           System.out.println("=== Check availability on all partner hotels ===");
 
@@ -139,16 +144,16 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
           int nbPers = inputProcessor.process();
 
           AvailabilityRequest req = new AvailabilityRequest();
-          // agency credentials (you can externalize later)
-          req.setAgenceId("AGENCE1");
-          req.setPassword("secret");
+
+          req.setAgenceId(agenceId);
+          req.setPassword(agencePassword);
           req.setDateDebut(start);
           req.setDateFin(end);
           req.setNbPersonnes(nbPers);
 
           lastAggregatedOffers.clear();
 
-          // Call each partner hotel
+
           for (String baseUrl : partnerBaseUrls) {
             try {
               String uri = baseUrl + "/availability";
@@ -186,6 +191,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
           break;
         }
 
+
         // ========= WS2 : effectuer réservation (SUR LE BON HOTEL) =========
         case "4": {
           System.out.println("=== Book an offer from last availability search ===");
@@ -196,7 +202,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
             break;
           }
 
-          // show offers again with their IDs, so user can pick one
+          // Show offers again so user can see the IDs
           System.out.println("Available offers:");
           for (PartnerOffer po : lastAggregatedOffers) {
             AvailabilityOffer o = po.offer;
@@ -209,7 +215,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
           }
           System.out.println();
 
-          // 🔥 ask by offerId instead of number
+          // Ask by offerId (H1-R101 style)
           System.out.print("Enter the offer ID to book (e.g. H1-R101): ");
           String chosenId = reader.readLine().trim();
 
@@ -224,6 +230,9 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
             break;
           }
 
+          // Easier alias
+          AvailabilityOffer chosenOffer = selected.offer;
+
           System.out.print("Client first name: ");
           String prenom = reader.readLine();
 
@@ -237,16 +246,18 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
           String tel = reader.readLine();
 
           BookingRequest req = new BookingRequest();
-          req.setAgenceId("AGENCE1");
-          req.setLogin("agencyLogin");
-          req.setPassword("secret");
-          req.setOfferId(selected.offer.getOfferId());  // e.g. "H1-R101"
+          req.setAgenceId(agenceId);
+          req.setPassword(agencePassword);
+          req.setOfferId(chosenOffer.getOfferId());
           req.setPrenom(prenom);
           req.setNom(nom);
           req.setEmail(email);
           req.setTelephone(tel);
 
-          // Call the /reservations endpoint on the SAME HOTEL that gave this offer
+          // 🔥 use the SAME dates as the chosen offer
+          req.setDateDebut(chosenOffer.getDateDebut());
+          req.setDateFin(chosenOffer.getDateFin());
+
           String uri = selected.baseUrl + "/reservations";
           BookingResponse resp = proxy.postForObject(uri, req, BookingResponse.class);
 
@@ -261,6 +272,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
           System.out.println();
           break;
         }
+
 
         default:
           break;

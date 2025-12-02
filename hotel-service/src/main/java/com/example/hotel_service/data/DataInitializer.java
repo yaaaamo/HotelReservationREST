@@ -1,7 +1,9 @@
 package com.example.hotel_service.data;
 
+import com.example.hotel_service.model.Agency;
 import com.example.hotel_service.model.Chambre;
 import com.example.hotel_service.model.Hotel;
+import com.example.hotel_service.repository.AgencyRepository;
 import com.example.hotel_service.repository.HotelRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,4 +78,18 @@ public class DataInitializer {
       }
     };
   }
+  @Bean
+  CommandLineRunner initAgencies(AgencyRepository agencyRepo) {
+    return args -> {
+      if (agencyRepo.count() == 0) {
+        // AGENCY1 : 10% reduction
+        agencyRepo.save(new Agency("AGENCE1", "Agence Paris", "secret1", 0.90));
+
+        // AGENCY2 : 20% reduction
+        agencyRepo.save(new Agency("AGENCE2", "Agence Lyon", "secret2", 0.80));
+      }
+    };
+  }
+
+
 }

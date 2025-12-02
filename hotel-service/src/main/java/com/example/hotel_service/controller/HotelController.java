@@ -1,12 +1,15 @@
 package com.example.hotel_service.controller;
 
 import com.example.hotel_service.model.*;
+import com.example.hotel_service.repository.AgencyRepository;
 import com.example.hotel_service.repository.ChambreRepository;
 import com.example.hotel_service.repository.HotelRepository;
 import com.example.hotel_service.repository.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,6 +28,15 @@ public class HotelController {
   @Autowired
   private ReservationRepository reservationRepository;
 
+  @Autowired
+  private AgencyRepository agencyRepository;
+
+  @Value("${hotel.code}")
+  private String hotelCode;
+
+
+
+
   private static final String uri = "hotelservice/api";
 
   @GetMapping(uri+"/hotels")
@@ -37,27 +49,28 @@ public class HotelController {
   }
 
   @PostMapping(uri + "/availability")
-  public List<AvailabilityOffer> consulterDisponibilites(@RequestBody AvailabilityRequest request) {
+  public List<AvailabilityOffer> consulterDisponibilites(
+          @RequestBody AvailabilityRequest request) {
+
+    String agenceId = request.getAgenceId();
+    String password = request.getPassword();
+
+    Agency agency = agencyRepository.findById(agenceId)
+            .orElse(null);
+
+    if (agency == null || !agency.getPassword().equals(password)) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Agence non autorisée");
+    }
 
     LocalDate debut = request.getDateDebut();
     LocalDate fin   = request.getDateFin();
     int nbPers      = request.getNbPersonnes();
 
-    List<AvailabilityOffer> offers = new ArrayList<>();
+    double factor = agency.getReductionFactor();  // 🔥 here
 
+    List<AvailabilityOffer> offers = new ArrayList<>();
     List<Chambre> chambres = chambreRepository.findAll();
 
-    // Determine hotel code from profile
-    //hard coded change later
-    String profile = System.getProperty("spring.profiles.active", "");
-    String hotelCode;
-    if ("h1".equals(profile)) {
-      hotelCode = "H1";
-    } else if ("h2".equals(profile)) {
-      hotelCode = "H2";
-    } else {
-      hotelCode = "HX";
-    }
 
     for (Chambre c : chambres) {
       if (c.getNombreLits() >= nbPers) {
@@ -73,27 +86,40 @@ public class HotelController {
         double prixParNuit = c.getPrixParNuit();
         long nbNuits = fin.toEpochDay() - debut.toEpochDay();
         if (nbNuits <= 0) nbNuits = 1;
-        offer.setPrix(prixParNuit * nbNuits);
 
+        double basePrice = prixParNuit * nbNuits;
+        double finalPrice = basePrice * factor;
+
+        offer.setPrix(finalPrice);
 
         String roomCode = "R" + c.getNumero();
         String offerId = hotelCode + "-" + roomCode;
         offer.setOfferId(offerId);
 
+
         offers.add(offer);
       }
     }
+
     return offers;
   }
+
 
 
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(uri + "/reservations")
   public BookingResponse reserver(@RequestBody BookingRequest request) {
 
-    String offerId = request.getOfferId();
+    Agency agency = agencyRepository.findById(request.getAgenceId())
+            .orElse(null);
 
-    // Expect format: HX-R<numero>
+    if (agency == null || !agency.getPassword().equals(request.getPassword())) {
+      return new BookingResponse(false,
+              "Agence non autorisée",
+              null);
+    }
+
+    String offerId = request.getOfferId();
     String[] parts = offerId.split("-R");
     if (parts.length != 2) {
       return new BookingResponse(false,
@@ -112,6 +138,16 @@ public class HotelController {
 
     Chambre chambre = chambreOpt.get();
 
+
+    LocalDate debut = request.getDateDebut();
+    LocalDate fin   = request.getDateFin();
+    long nbNuits = fin.toEpochDay() - debut.toEpochDay();
+    if (nbNuits <= 0) nbNuits = 1;
+
+    double basePrice = chambre.getPrixParNuit() * nbNuits;
+    double factor    = agency.getReductionFactor();
+    double finalPrice = basePrice * factor;
+
     Reservation res = new Reservation();
     res.setAgenceId(request.getAgenceId());
     res.setNomClient(request.getNom());
@@ -119,9 +155,9 @@ public class HotelController {
     res.setEmailClient(request.getEmail());
     res.setTelephoneClient(request.getTelephone());
 
-    res.setDateArrivee(LocalDate.now());
-    res.setDateDepart(LocalDate.now().plusDays(1));
-    res.setMontantTotal(chambre.getPrixParNuit());
+    res.setDateArrivee(debut);
+    res.setDateDepart(fin);
+    res.setMontantTotal(finalPrice);
     res.setChambre(chambre);
     res.genererReference();
 
@@ -131,6 +167,7 @@ public class HotelController {
             "Réservation confirmée",
             res.getReference());
   }
+
 
 
 

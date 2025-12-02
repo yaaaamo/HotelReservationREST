@@ -1,18 +1,37 @@
 package com.example.hotel_service.model;
 
+import java.time.LocalDate;
+
 public class BookingRequest {
 
   private String agenceId;
   private String login;
   private String password;
 
-  // was Long, now String
   private String offerId;
 
   private String nom;
   private String prenom;
   private String email;
   private String telephone;
+  private LocalDate dateDebut;
+  private LocalDate dateFin;
+
+  public LocalDate getDateDebut() {
+    return dateDebut;
+  }
+
+  public void setDateDebut(LocalDate dateDebut) {
+    this.dateDebut = dateDebut;
+  }
+
+  public LocalDate getDateFin() {
+    return dateFin;
+  }
+
+  public void setDateFin(LocalDate dateFin) {
+    this.dateFin = dateFin;
+  }
 
   public String getAgenceId() { return agenceId; }
   public void setAgenceId(String agenceId) { this.agenceId = agenceId; }

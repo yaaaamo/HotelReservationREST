@@ -33,7 +33,7 @@ public class Reservation {
   private double montantTotal;
 
   @Column(nullable = false)
-  private String statut; // CONFIRMEE, ANNULEE, EN_ATTENTE
+  private String statut;
 
   private String agenceId;
 
@@ -64,7 +64,7 @@ public class Reservation {
     this.reference = "RES-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 1000);
   }
 
-  // Getters et Setters
+
   public Long getId() { return id; }
   public void setId(Long id) { this.id = id; }
 

@@ -48,7 +48,7 @@ public class Hotel {
     this.longitude = longitude;
   }
 
-  // Getters et Setters
+
   public Long getId() {
     return id;
   }
