@@ -2,47 +2,78 @@ package com.example.hotel_service.data;
 
 import com.example.hotel_service.model.Chambre;
 import com.example.hotel_service.model.Hotel;
+import com.example.hotel_service.repository.HotelRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.example.hotel_service.repository.HotelRepository;
 
 @Configuration
 public class DataInitializer {
 
-  private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
+  private final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
+
+  // infos hôtel injectées depuis application-*.properties
+  @Value("${hotel.name}")
+  private String hotelName;
+
+  @Value("${hotel.stars}")
+  private int hotelStars;
+
+  @Value("${hotel.ville}")
+  private String hotelVille;
+
+  @Value("${hotel.pays}")
+  private String hotelPays;
+
+  @Value("${hotel.rue}")
+  private String hotelRue;
+
+  @Value("${hotel.numero}")
+  private String hotelNumero;
+
+  @Value("${hotel.latitude}")
+  private Double hotelLat;
+
+  @Value("${hotel.longitude}")
+  private Double hotelLng;
 
   @Bean
-  public CommandLineRunner initDatabase(HotelRepository hotelRepository) {
+  CommandLineRunner initDatabase(HotelRepository hotelRepo) {
     return args -> {
 
-      String hotelName = System.getProperty("hotel.name", "Hotel Paradise");
-      int etoiles = Integer.parseInt(System.getProperty("hotel.etoiles", "4"));
-      String ville = System.getProperty("hotel.ville", "Paris");
+      if (hotelRepo.count() == 0) {
 
-      Hotel hotel = new Hotel(
-              hotelName,
-              etoiles,
-              "France",
-              ville,
-              "Avenue des Champs-Élysées",
-              "123",
-              48.8566,
-              2.3522
-      );
+        // créer l’hôtel spécifique
+        Hotel hotel = new Hotel(
+                hotelName,
+                hotelStars,
+                hotelPays,
+                hotelVille,
+                hotelRue,
+                hotelNumero,
+                hotelLat,
+                hotelLng
+        );
 
-      hotel.addChambre(new Chambre("101", "SIMPLE", 1, 80.0));
-      hotel.addChambre(new Chambre("102", "SIMPLE", 1, 80.0));
-      hotel.addChambre(new Chambre("201", "DOUBLE", 2, 120.0));
-      hotel.addChambre(new Chambre("202", "DOUBLE", 2, 120.0));
-      hotel.addChambre(new Chambre("301", "SUITE", 2, 200.0));
-      hotel.addChambre(new Chambre("401", "FAMILIALE", 4, 250.0));
+        // ajouter les mêmes chambres pour tous les hôtels
 
-      hotelRepository.save(hotel);
-      logger.info("Hôtel créé: {} ({} étoiles) à {}", hotelName, etoiles, ville);
+        hotel.addChambre(new Chambre("101", "SIMPLE", 1, 80.0));
+        hotel.addChambre(new Chambre("102", "SIMPLE", 1, 80.0));
+        hotel.addChambre(new Chambre("201", "DOUBLE", 2, 120.0));
+        hotel.addChambre(new Chambre("202", "DOUBLE", 2, 120.0));
+        hotel.addChambre(new Chambre("301", "SUITE", 2, 200.0));
+        hotel.addChambre(new Chambre("401", "FAMILIALE", 4, 250.0));
+
+
+        hotelRepo.save(hotel);
+
+        logger.info("Hôtel créé: {} ({} étoiles) à {}", hotelName, hotelStars, hotelVille);
+      } else {
+        logger.info("Base déjà initialisée, aucun hôtel créé.");
+      }
     };
   }
-
 }

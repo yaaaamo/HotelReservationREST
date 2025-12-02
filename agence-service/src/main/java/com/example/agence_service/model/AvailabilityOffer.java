@@ -4,7 +4,8 @@ import java.time.LocalDate;
 
 public class AvailabilityOffer {
 
-  private Long offerId;
+  private String offerId;   // "H1-R101"
+
   private Long hotelId;
   private String hotelName;
   private int nbLits;
@@ -12,8 +13,8 @@ public class AvailabilityOffer {
   private LocalDate dateFin;
   private double prix;
 
-  public Long getOfferId() { return offerId; }
-  public void setOfferId(Long offerId) { this.offerId = offerId; }
+  public String getOfferId() { return offerId; }
+  public void setOfferId(String offerId) { this.offerId = offerId; }
 
   public Long getHotelId() { return hotelId; }
   public void setHotelId(Long hotelId) { this.hotelId = hotelId; }
@@ -36,7 +37,7 @@ public class AvailabilityOffer {
   @Override
   public String toString() {
     return "Offer{" +
-            "offerId=" + offerId +
+            "offerId='" + offerId + '\'' +
             ", hotelId=" + hotelId +
             ", hotelName='" + hotelName + '\'' +
             ", nbLits=" + nbLits +
@@ -46,4 +47,3 @@ public class AvailabilityOffer {
             '}';
   }
 }
-

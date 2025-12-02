@@ -4,17 +4,18 @@ import java.time.LocalDate;
 
 public class AvailabilityOffer {
 
-  private Long offerId;       // on peut le mapper sur l'id de Chambre
+
+  private String offerId;
+
   private Long hotelId;
   private String hotelName;
-
-  private int nbLits;         // type de chambre
+  private int nbLits;
   private LocalDate dateDebut;
   private LocalDate dateFin;
   private double prix;
 
-  public Long getOfferId() { return offerId; }
-  public void setOfferId(Long offerId) { this.offerId = offerId; }
+  public String getOfferId() { return offerId; }
+  public void setOfferId(String offerId) { this.offerId = offerId; }
 
   public Long getHotelId() { return hotelId; }
   public void setHotelId(Long hotelId) { this.hotelId = hotelId; }
@@ -34,4 +35,3 @@ public class AvailabilityOffer {
   public double getPrix() { return prix; }
   public void setPrix(double prix) { this.prix = prix; }
 }
-

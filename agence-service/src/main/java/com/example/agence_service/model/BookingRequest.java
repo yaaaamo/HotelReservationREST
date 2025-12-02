@@ -1,13 +1,12 @@
 package com.example.agence_service.model;
 
-
-
 public class BookingRequest {
 
   private String agenceId;
   private String login;
   private String password;
-  private Long offerId;
+
+  private String offerId;   // "H1-R101"
 
   private String nom;
   private String prenom;
@@ -23,8 +22,8 @@ public class BookingRequest {
   public String getPassword() { return password; }
   public void setPassword(String password) { this.password = password; }
 
-  public Long getOfferId() { return offerId; }
-  public void setOfferId(Long offerId) { this.offerId = offerId; }
+  public String getOfferId() { return offerId; }
+  public void setOfferId(String offerId) { this.offerId = offerId; }
 
   public String getNom() { return nom; }
   public void setNom(String nom) { this.nom = nom; }
@@ -38,4 +37,3 @@ public class BookingRequest {
   public String getTelephone() { return telephone; }
   public void setTelephone(String telephone) { this.telephone = telephone; }
 }
-

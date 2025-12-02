@@ -37,11 +37,7 @@ public class HotelController {
   }
 
   @PostMapping(uri + "/availability")
-  public List<AvailabilityOffer> consulterDisponibilites(
-          @RequestBody AvailabilityRequest request) {
-
-    // 1) Vérifier (éventuellement) les identifiants agence / mot de passe
-    // Ici on ne fait que simuler → TODO: vraie vérification plus tard
+  public List<AvailabilityOffer> consulterDisponibilites(@RequestBody AvailabilityRequest request) {
 
     LocalDate debut = request.getDateDebut();
     LocalDate fin   = request.getDateFin();
@@ -49,52 +45,73 @@ public class HotelController {
 
     List<AvailabilityOffer> offers = new ArrayList<>();
 
-    // VERSION SIMPLE : on considère toutes les chambres comme dispo
-    // (à améliorer en tenant compte des réservations existantes)
     List<Chambre> chambres = chambreRepository.findAll();
+
+    // Determine hotel code from profile
+    //hard coded change later
+    String profile = System.getProperty("spring.profiles.active", "");
+    String hotelCode;
+    if ("h1".equals(profile)) {
+      hotelCode = "H1";
+    } else if ("h2".equals(profile)) {
+      hotelCode = "H2";
+    } else {
+      hotelCode = "HX";
+    }
 
     for (Chambre c : chambres) {
       if (c.getNombreLits() >= nbPers) {
         Hotel h = c.getHotel();
 
         AvailabilityOffer offer = new AvailabilityOffer();
-        offer.setOfferId(c.getId());       // offerId = id de la chambre
         offer.setHotelId(h.getId());
         offer.setHotelName(h.getNom());
         offer.setNbLits(c.getNombreLits());
         offer.setDateDebut(debut);
         offer.setDateFin(fin);
 
-
         double prixParNuit = c.getPrixParNuit();
         long nbNuits = fin.toEpochDay() - debut.toEpochDay();
         if (nbNuits <= 0) nbNuits = 1;
         offer.setPrix(prixParNuit * nbNuits);
 
+
+        String roomCode = "R" + c.getNumero();
+        String offerId = hotelCode + "-" + roomCode;
+        offer.setOfferId(offerId);
+
         offers.add(offer);
       }
     }
-
     return offers;
   }
+
 
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(uri + "/reservations")
   public BookingResponse reserver(@RequestBody BookingRequest request) {
 
-    // 1) Vérifier login/mot de passe d’agence si tu as une table des agences
-    // Pour l'instant on suppose que c'est ok
+    String offerId = request.getOfferId();
 
-    Optional<Chambre> chambreOpt = chambreRepository.findById(request.getOfferId());
+    // Expect format: HX-R<numero>
+    String[] parts = offerId.split("-R");
+    if (parts.length != 2) {
+      return new BookingResponse(false,
+              "Format d'identifiant d'offre invalide: " + offerId,
+              null);
+    }
+
+    String roomNumero = parts[1];
+
+    Optional<Chambre> chambreOpt = chambreRepository.findByNumero(roomNumero);
     if (!chambreOpt.isPresent()) {
       return new BookingResponse(false,
-              "Offre introuvable (chambre inconnue)",
+              "Offre introuvable pour la chambre " + roomNumero,
               null);
     }
 
     Chambre chambre = chambreOpt.get();
 
-    // 2) Créer une réservation
     Reservation res = new Reservation();
     res.setAgenceId(request.getAgenceId());
     res.setNomClient(request.getNom());
@@ -102,16 +119,10 @@ public class HotelController {
     res.setEmailClient(request.getEmail());
     res.setTelephoneClient(request.getTelephone());
 
-    // pour les dates, il faudrait normalement les récupérer depuis l’offre;
-    // ici on simplifie : on met aujourd’hui + 1 jour
     res.setDateArrivee(LocalDate.now());
     res.setDateDepart(LocalDate.now().plusDays(1));
-
-    // Calcul d’un montant simple
     res.setMontantTotal(chambre.getPrixParNuit());
     res.setChambre(chambre);
-
-    // Génération référence et statut
     res.genererReference();
 
     reservationRepository.save(res);
