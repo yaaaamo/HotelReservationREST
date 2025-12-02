@@ -1,5 +1,7 @@
 package com.example.hotel_service.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +30,11 @@ public class Hotel {
   private Double longitude;
 
   @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @JsonManagedReference
   private List<Chambre> chambres = new ArrayList<>();
 
-  public Hotel() {}
+  public Hotel() {
+  }
 
   public Hotel(String nom, int nombreEtoiles, String pays, String ville,
                String rue, String numero, Double latitude, Double longitude) {
@@ -45,38 +49,93 @@ public class Hotel {
   }
 
   // Getters et Setters
-  public Long getId() { return id; }
-  public void setId(Long id) { this.id = id; }
+  public Long getId() {
+    return id;
+  }
 
-  public String getNom() { return nom; }
-  public void setNom(String nom) { this.nom = nom; }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-  public int getNombreEtoiles() { return nombreEtoiles; }
-  public void setNombreEtoiles(int nombreEtoiles) { this.nombreEtoiles = nombreEtoiles; }
+  public String getNom() {
+    return nom;
+  }
 
-  public String getPays() { return pays; }
-  public void setPays(String pays) { this.pays = pays; }
+  public void setNom(String nom) {
+    this.nom = nom;
+  }
 
-  public String getVille() { return ville; }
-  public void setVille(String ville) { this.ville = ville; }
+  public int getNombreEtoiles() {
+    return nombreEtoiles;
+  }
 
-  public String getRue() { return rue; }
-  public void setRue(String rue) { this.rue = rue; }
+  public void setNombreEtoiles(int nombreEtoiles) {
+    this.nombreEtoiles = nombreEtoiles;
+  }
 
-  public String getNumero() { return numero; }
-  public void setNumero(String numero) { this.numero = numero; }
+  public String getPays() {
+    return pays;
+  }
 
-  public String getLieuDit() { return lieuDit; }
-  public void setLieuDit(String lieuDit) { this.lieuDit = lieuDit; }
+  public void setPays(String pays) {
+    this.pays = pays;
+  }
 
-  public Double getLatitude() { return latitude; }
-  public void setLatitude(Double latitude) { this.latitude = latitude; }
+  public String getVille() {
+    return ville;
+  }
 
-  public Double getLongitude() { return longitude; }
-  public void setLongitude(Double longitude) { this.longitude = longitude; }
+  public void setVille(String ville) {
+    this.ville = ville;
+  }
 
-  public List<Chambre> getChambres() { return chambres; }
-  public void setChambres(List<Chambre> chambres) { this.chambres = chambres; }
+  public String getRue() {
+    return rue;
+  }
+
+  public void setRue(String rue) {
+    this.rue = rue;
+  }
+
+  public String getNumero() {
+    return numero;
+  }
+
+  public void setNumero(String numero) {
+    this.numero = numero;
+  }
+
+  public String getLieuDit() {
+    return lieuDit;
+  }
+
+  public void setLieuDit(String lieuDit) {
+    this.lieuDit = lieuDit;
+  }
+
+  public Double getLatitude() {
+    return latitude;
+  }
+
+  public void setLatitude(Double latitude) {
+    this.latitude = latitude;
+  }
+
+  public Double getLongitude() {
+    return longitude;
+  }
+
+  public void setLongitude(Double longitude) {
+    this.longitude = longitude;
+  }
+
+  public List<Chambre> getChambres() {
+    return chambres;
+  }
+
+  public void setChambres(List<Chambre> chambres) {
+    this.chambres = chambres;
+  }
 
   public void addChambre(Chambre chambre) {
     chambres.add(chambre);

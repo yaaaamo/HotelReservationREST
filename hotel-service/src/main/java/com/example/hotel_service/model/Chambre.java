@@ -1,4 +1,6 @@
 package com.example.hotel_service.model;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,7 @@ public class Chambre {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "hotel_id", nullable = false)
+  @JsonBackReference
   private Hotel hotel;
 
   @OneToMany(mappedBy = "chambre", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
