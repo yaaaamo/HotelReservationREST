@@ -9,6 +9,14 @@ public class AvailabilityRequest {
   private LocalDate dateDebut;
   private LocalDate dateFin;
   private int nbPersonnes;
+  private String ville;
+  private int nombreEtoilesMin;
+
+  public int getNombreEtoilesMin() { return nombreEtoilesMin; }
+  public void setNombreEtoilesMin(int nombreEtoilesMin) { this.nombreEtoilesMin = nombreEtoilesMin; }
+
+  public String getVille() { return ville; }
+  public void setVille(String ville) { this.ville = ville; }
 
   public String getAgenceId() { return agenceId; }
   public void setAgenceId(String agenceId) { this.agenceId = agenceId; }

@@ -93,8 +93,24 @@ public class HotelController {
       return offers;
     }
 
+    String villeRecherche = request.getVille();
+    int etoilesMin = request.getNombreEtoilesMin();
+
     for (AvailabilityWindow win : windows) {
       Chambre c = win.getChambre();
+      Hotel h = c.getHotel();
+
+      if (villeRecherche != null && !villeRecherche.isEmpty()) {
+        String hotelVille = h.getVille();
+        if (hotelVille == null || !hotelVille.equalsIgnoreCase(villeRecherche)) {
+          continue;
+        }
+      }
+
+      if (etoilesMin > 0 && h.getNombreEtoiles() < etoilesMin) {
+        continue;
+      }
+
 
 
       if (c.getNombreLits() < nbPers) {
@@ -118,7 +134,9 @@ public class HotelController {
         continue;
       }
 
-      Hotel h = c.getHotel();
+
+
+
 
       AvailabilityOffer offer = new AvailabilityOffer();
       offer.setHotelId(h.getId());
@@ -141,6 +159,16 @@ public class HotelController {
       offer.setImageUrl(c.getImageUrl());
       offer.setTypeChambre(c.getTypeChambre());
       offer.setRemaining(remaining);
+
+      String adresse = String.format("%s %s, %s, %s",
+              h.getNumero() != null ? h.getNumero() : "",
+              h.getRue() != null ? h.getRue() : "",
+              h.getVille() != null ? h.getVille() : "",
+              h.getPays() != null ? h.getPays() : "");
+
+      offer.setAdresseHotel(adresse);
+      offer.setNombreEtoiles(h.getNombreEtoiles());
+
 
       offers.add(offer);
     }

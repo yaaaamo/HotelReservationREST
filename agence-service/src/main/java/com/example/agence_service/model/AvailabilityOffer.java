@@ -14,6 +14,14 @@ public class AvailabilityOffer {
   private String imageUrl;
   private String typeChambre;
   private int remaining;
+  private String adresseHotel;
+  private int nombreEtoiles;
+
+  public String getAdresseHotel() { return adresseHotel; }
+  public void setAdresseHotel(String adresseHotel) { this.adresseHotel = adresseHotel; }
+
+  public int getNombreEtoiles() { return nombreEtoiles; }
+  public void setNombreEtoiles(int nombreEtoiles) { this.nombreEtoiles = nombreEtoiles; }
 
   public int getRemaining() {
     return remaining;

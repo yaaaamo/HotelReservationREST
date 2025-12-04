@@ -133,27 +133,41 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
         case "3": {
           System.out.println("=== Check availability on all partner hotels ===");
 
+          System.out.print("City (or press Enter for all): ");
+          String ville = reader.readLine().trim();
+
+          System.out.print("Minimum stars (0 for any): ");
+          int minStars = 0;
+          try {
+            String starsInput = reader.readLine().trim();
+            if (!starsInput.isEmpty()) {
+              minStars = Integer.parseInt(starsInput);
+            }
+          } catch (NumberFormatException e) {
+            System.out.println("Invalid number, using 0 (any stars)");
+          }
+
           System.out.print("Start date (yyyy-MM-dd): ");
           LocalDate start = LocalDate.parse(reader.readLine());
 
           System.out.print("End date (yyyy-MM-dd): ");
           LocalDate end = LocalDate.parse(reader.readLine());
 
-          inputProcessor.setMessage();
-          System.out.println("Number of persons : ");
+          System.out.println("Number of persons: ");
           int nbPers = inputProcessor.process();
 
           AvailabilityRequest req = new AvailabilityRequest();
-
           req.setAgenceId(agenceId);
           req.setPassword(agencePassword);
           req.setDateDebut(start);
           req.setDateFin(end);
           req.setNbPersonnes(nbPers);
+          req.setVille(ville.isEmpty() ? null : ville);
+          req.setNombreEtoilesMin(minStars);
 
           lastAggregatedOffers.clear();
 
-
+          // ⬇️⬇️⬇️ BU KISIM EKSİKTİ ⬇️⬇️⬇️
           for (String baseUrl : partnerBaseUrls) {
             try {
               String uri = baseUrl + "/availability";
@@ -166,7 +180,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
               }
             } catch (HttpClientErrorException e) {
               if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                System.out.println("[INFO] No offers from partner " + baseUrl + " for these dates.");
+                System.out.println("[INFO] No offers from partner " + baseUrl + " for these criteria.");
               } else {
                 System.err.println("[WARN] Partner " + baseUrl + " returned error "
                         + e.getStatusCode() + " (" + e.getStatusText() + ")");
@@ -175,7 +189,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
               System.err.println("[WARN] Could not contact partner: " + baseUrl + " -> " + e.getMessage());
             }
           }
-
+          // ⬆️⬆️⬆️ BU KISIM EKSİKTİ ⬆️⬆️⬆️
 
           if (lastAggregatedOffers.isEmpty()) {
             System.out.println("No offers found from any partner.");
@@ -188,19 +202,19 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
                       + po.baseUrl + "] "
                       + "Offer=" + o.getOfferId()
                       + ", Hotel=" + o.getHotelName()
+                      + " (" + o.getNombreEtoiles() + "★)"
+                      + ", Address=" + o.getAdresseHotel()
                       + ", beds=" + o.getNbLits()
                       + ", from " + o.getDateDebut()
                       + " to " + o.getDateFin()
                       + ", price=" + o.getPrix()
-                      + ", quantity=" + o.getRemaining()
-                      + ", image=" + o.getImageUrl());
+                      + ", quantity=" + o.getRemaining());
               idx++;
             }
           }
           System.out.println();
           break;
         }
-
 
 
         case "4": {
