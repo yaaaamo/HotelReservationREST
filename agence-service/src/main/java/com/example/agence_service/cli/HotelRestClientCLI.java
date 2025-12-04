@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -163,10 +164,18 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
                   lastAggregatedOffers.add(new PartnerOffer(baseUrl, o));
                 }
               }
+            } catch (HttpClientErrorException e) {
+              if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                System.out.println("[INFO] No offers from partner " + baseUrl + " for these dates.");
+              } else {
+                System.err.println("[WARN] Partner " + baseUrl + " returned error "
+                        + e.getStatusCode() + " (" + e.getStatusText() + ")");
+              }
             } catch (Exception e) {
               System.err.println("[WARN] Could not contact partner: " + baseUrl + " -> " + e.getMessage());
             }
           }
+
 
           if (lastAggregatedOffers.isEmpty()) {
             System.out.println("No offers found from any partner.");

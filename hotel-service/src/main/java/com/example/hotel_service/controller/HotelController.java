@@ -65,14 +65,15 @@ public class HotelController {
     LocalDate debut = request.getDateDebut();
     LocalDate fin   = request.getDateFin();
 
+
     if (debut == null || fin == null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dates cannot be empty");
     }
-
     if (debut.isAfter(fin)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start date must be before end date");
     }
-    // i removed "past dates not allowed" for future execution
+
+    // I removed the "past dates not allowed" for futur executions
 
     int nbPers = request.getNbPersonnes();
     if (nbPers <= 0) {
@@ -87,12 +88,19 @@ public class HotelController {
             availabilityWindowRepository
                     .findByStartDateLessThanEqualAndEndDateGreaterThanEqual(fin, debut);
 
+
+    if (windows.isEmpty()) {
+      return offers;
+    }
+
     for (AvailabilityWindow win : windows) {
       Chambre c = win.getChambre();
+
 
       if (c.getNombreLits() < nbPers) {
         continue;
       }
+
 
       LocalDate effStart = debut.isAfter(win.getStartDate()) ? debut : win.getStartDate();
       LocalDate effEnd   = fin.isBefore(win.getEndDate()) ? fin : win.getEndDate();
@@ -100,7 +108,6 @@ public class HotelController {
       if (!effStart.isBefore(effEnd)) {
         continue;
       }
-
       long reserved = reservationRepository
               .countOverlappingReservations(c, effStart, effEnd);
 
@@ -117,14 +124,13 @@ public class HotelController {
       offer.setHotelId(h.getId());
       offer.setHotelName(h.getNom());
       offer.setNbLits(c.getNombreLits());
-
       offer.setDateDebut(debut);
       offer.setDateFin(fin);
 
-      double prixParNuit = c.getPrixParNuit();
       long nbNuits = fin.toEpochDay() - debut.toEpochDay();
       if (nbNuits <= 0) nbNuits = 1;
 
+      double prixParNuit = c.getPrixParNuit();
       double basePrice = prixParNuit * nbNuits;
       double finalPrice = basePrice * factor;
       offer.setPrix(finalPrice);
@@ -138,6 +144,13 @@ public class HotelController {
 
       offers.add(offer);
     }
+    if (offers.isEmpty()) {
+      throw new ResponseStatusException(
+              HttpStatus.NOT_FOUND,
+              "No availability for the given dates and number of persons"
+      );
+    }
+
 
     return offers;
   }
