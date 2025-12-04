@@ -9,6 +9,11 @@ public class BookingResponse {
 
   public BookingResponse() {}
 
+  public BookingResponse(boolean b, String s, Object o) {
+    this.success=b;
+    this.message=s;
+  }
+
   public boolean isSuccess() { return success; }
   public void setSuccess(boolean success) { this.success = success; }
 
