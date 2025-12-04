@@ -202,7 +202,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
         }
 
 
-        // ========= WS2 : effectuer réservation (SUR LE BON HOTEL) =========
+
         case "4": {
           System.out.println("=== Book an offer from last availability search ===");
 
@@ -212,7 +212,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
             break;
           }
 
-          // Show offers again so user can see the IDs
+
           System.out.println("Available offers:");
           for (PartnerOffer po : lastAggregatedOffers) {
             AvailabilityOffer o = po.offer;
@@ -225,7 +225,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
           }
           System.out.println();
 
-          // Ask by offerId (H1-R101 style)
+
           System.out.print("Enter the offer ID to book (e.g. H1-R101): ");
           String chosenId = reader.readLine().trim();
 
@@ -240,7 +240,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
             break;
           }
 
-          // Easier alias
+
           AvailabilityOffer chosenOffer = selected.offer;
 
           System.out.print("Client first name: ");
@@ -264,7 +264,7 @@ public class HotelRestClientCLI extends AbstractMain implements CommandLineRunne
           req.setEmail(email);
           req.setTelephone(tel);
 
-          // 🔥 use the SAME dates as the chosen offer
+
           req.setDateDebut(chosenOffer.getDateDebut());
           req.setDateFin(chosenOffer.getDateFin());
 
