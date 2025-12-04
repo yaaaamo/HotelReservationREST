@@ -37,12 +37,6 @@ public class HotelController {
 
   private static final String uri = "hotelservice/api";
 
-  private boolean overlap(LocalDate start1, LocalDate end1,
-                          LocalDate start2, LocalDate end2) {
-    // [start1, end1) intersecte [start2, end2) ?
-    return !start1.isAfter(end2.minusDays(1)) && !start2.isAfter(end1.minusDays(1));
-  }
-
 
 
   @GetMapping(uri+"/hotels")
@@ -70,12 +64,24 @@ public class HotelController {
 
     LocalDate debut = request.getDateDebut();
     LocalDate fin   = request.getDateFin();
-    int nbPers      = request.getNbPersonnes();
+
+    if (debut == null || fin == null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dates cannot be empty");
+    }
+
+    if (debut.isAfter(fin)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start date must be before end date");
+    }
+    // i removed "past dates not allowed" for future execution
+
+    int nbPers = request.getNbPersonnes();
+    if (nbPers <= 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Number of persons must be positive");
+    }
 
     double factor = agency.getReductionFactor();
 
     List<AvailabilityOffer> offers = new ArrayList<>();
-
 
     List<AvailabilityWindow> windows =
             availabilityWindowRepository
@@ -84,38 +90,58 @@ public class HotelController {
     for (AvailabilityWindow win : windows) {
       Chambre c = win.getChambre();
 
-
-      if (c.getNombreLits() >= nbPers && win.getQuantity() > 0) {
-        Hotel h = c.getHotel();
-
-        AvailabilityOffer offer = new AvailabilityOffer();
-        offer.setHotelId(h.getId());
-        offer.setHotelName(h.getNom());
-        offer.setNbLits(c.getNombreLits());
-
-        offer.setDateDebut(debut);
-        offer.setDateFin(fin);
-
-        double prixParNuit = c.getPrixParNuit();
-        long nbNuits = fin.toEpochDay() - debut.toEpochDay();
-        if (nbNuits <= 0) nbNuits = 1;
-
-        double basePrice = prixParNuit * nbNuits;
-        double finalPrice = basePrice * factor;
-        offer.setPrix(finalPrice);
-
-        String roomCode = "R" + c.getNumero();
-        String offerId = hotelCode + "-" + roomCode;
-        offer.setOfferId(offerId);
-        offer.setImageUrl(c.getImageUrl());
-        offer.setTypeChambre(c.getTypeChambre());
-
-        offers.add(offer);
+      if (c.getNombreLits() < nbPers) {
+        continue;
       }
+
+      LocalDate effStart = debut.isAfter(win.getStartDate()) ? debut : win.getStartDate();
+      LocalDate effEnd   = fin.isBefore(win.getEndDate()) ? fin : win.getEndDate();
+
+      if (!effStart.isBefore(effEnd)) {
+        continue;
+      }
+
+      long reserved = reservationRepository
+              .countOverlappingReservations(c, effStart, effEnd);
+
+      int capacity  = win.getQuantity();
+      int remaining = capacity - (int) reserved;
+
+      if (remaining <= 0) {
+        continue;
+      }
+
+      Hotel h = c.getHotel();
+
+      AvailabilityOffer offer = new AvailabilityOffer();
+      offer.setHotelId(h.getId());
+      offer.setHotelName(h.getNom());
+      offer.setNbLits(c.getNombreLits());
+
+      offer.setDateDebut(debut);
+      offer.setDateFin(fin);
+
+      double prixParNuit = c.getPrixParNuit();
+      long nbNuits = fin.toEpochDay() - debut.toEpochDay();
+      if (nbNuits <= 0) nbNuits = 1;
+
+      double basePrice = prixParNuit * nbNuits;
+      double finalPrice = basePrice * factor;
+      offer.setPrix(finalPrice);
+
+      String roomCode = "R" + c.getNumero();
+      String offerId = hotelCode + "-" + roomCode;
+      offer.setOfferId(offerId);
+      offer.setImageUrl(c.getImageUrl());
+      offer.setTypeChambre(c.getTypeChambre());
+      offer.setRemaining(remaining);
+
+      offers.add(offer);
     }
 
     return offers;
   }
+
 
 
 

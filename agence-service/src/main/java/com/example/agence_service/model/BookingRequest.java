@@ -34,7 +34,7 @@ public class BookingRequest {
 
   public String getAgenceId() { return agenceId; }
   public void setAgenceId(String agenceId) { this.agenceId = agenceId; }
-  
+
 
   public String getPassword() { return password; }
   public void setPassword(String password) { this.password = password; }

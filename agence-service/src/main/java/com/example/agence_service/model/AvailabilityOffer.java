@@ -5,7 +5,6 @@ import java.time.LocalDate;
 public class AvailabilityOffer {
 
   private String offerId;
-
   private Long hotelId;
   private String hotelName;
   private int nbLits;
@@ -14,6 +13,15 @@ public class AvailabilityOffer {
   private double prix;
   private String imageUrl;
   private String typeChambre;
+  private int remaining;
+
+  public int getRemaining() {
+    return remaining;
+  }
+
+  public void setRemaining(int remaining) {
+    this.remaining = remaining;
+  }
 
   public String getTypeChambre() { return typeChambre; }
   public void setTypeChambre(String typeChambre) { this.typeChambre = typeChambre; }

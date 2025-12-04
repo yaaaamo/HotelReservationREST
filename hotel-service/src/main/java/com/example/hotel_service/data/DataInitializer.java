@@ -92,26 +92,45 @@ public class DataInitializer {
         hotel.addChambre(c401);
 
         hotelRepo.save(hotel);
+
         winRepo.save(new AvailabilityWindow(
-                LocalDate.of(2025, 12, 1),
-                LocalDate.of(2025, 12, 5),
+                LocalDate.of(2025, 12, 10),
+                LocalDate.of(2025, 12, 20),
                 1,
                 c101
         ));
         winRepo.save(new AvailabilityWindow(
-                LocalDate.of(2025, 12, 5),
                 LocalDate.of(2025, 12, 10),
+                LocalDate.of(2025, 12, 20),
                 1,
-                c101
+                c102
         ));
-
-
         winRepo.save(new AvailabilityWindow(
-                LocalDate.of(2025, 12, 1),
                 LocalDate.of(2025, 12, 10),
-                1,
+                LocalDate.of(2025, 12, 20),
+                2,
+                c201
+        ));
+        winRepo.save(new AvailabilityWindow(
+                LocalDate.of(2025, 12, 10),
+                LocalDate.of(2025, 12, 20),
+                2,
+                c202
+        ));
+        winRepo.save(new AvailabilityWindow(
+                LocalDate.of(2025, 12, 20),
+                LocalDate.of(2025, 12, 30),
+                3,
+                c301
+        ));
+        winRepo.save(new AvailabilityWindow(
+                LocalDate.of(2025, 12, 20),
+                LocalDate.of(2025, 12, 30),
+                4,
                 c401
         ));
+
+
 
         logger.info("Hôtel créé: {} ({} étoiles) à {}", hotelName, hotelStars, hotelVille);
       } else {

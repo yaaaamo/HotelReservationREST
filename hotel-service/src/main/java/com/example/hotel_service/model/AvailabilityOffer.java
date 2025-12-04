@@ -12,6 +12,7 @@ public class AvailabilityOffer {
   private double prix;
   private String imageUrl;
   private String typeChambre;
+  private int remaining;
 
   public String getTypeChambre() { return typeChambre; }
   public void setTypeChambre(String typeChambre) { this.typeChambre = typeChambre; }
@@ -44,4 +45,12 @@ public class AvailabilityOffer {
 
   public double getPrix() { return prix; }
   public void setPrix(double prix) { this.prix = prix; }
+
+  public void setRemaining(int remaining) {
+    this.remaining=remaining;
+  }
+
+  public int getRemaining(){
+    return remaining;
+  }
 }
