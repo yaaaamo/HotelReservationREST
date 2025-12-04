@@ -3,10 +3,7 @@ package com.example.hotel_service.model;
 import java.time.LocalDate;
 
 public class AvailabilityOffer {
-
-
   private String offerId;
-
   private Long hotelId;
   private String hotelName;
   private int nbLits;
@@ -14,6 +11,10 @@ public class AvailabilityOffer {
   private LocalDate dateFin;
   private double prix;
   private String imageUrl;
+  private String typeChambre;
+
+  public String getTypeChambre() { return typeChambre; }
+  public void setTypeChambre(String typeChambre) { this.typeChambre = typeChambre; }
 
   public String getImageUrl() {
     return imageUrl;

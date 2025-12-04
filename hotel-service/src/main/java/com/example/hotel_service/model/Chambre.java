@@ -35,6 +35,7 @@ public class Chambre {
 
   private String imageUrl;
 
+
   public Chambre() {}
 
   public Chambre(String numero, String typeChambre, int nombreLits, double prixParNuit) {
@@ -43,6 +44,8 @@ public class Chambre {
     this.nombreLits = nombreLits;
     this.prixParNuit = prixParNuit;
   }
+
+
 
   public String getImageUrl() {
     return imageUrl;

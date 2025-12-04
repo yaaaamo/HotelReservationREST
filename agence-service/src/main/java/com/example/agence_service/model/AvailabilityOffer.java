@@ -13,6 +13,11 @@ public class AvailabilityOffer {
   private LocalDate dateFin;
   private double prix;
   private String imageUrl;
+  private String typeChambre;
+
+  public String getTypeChambre() { return typeChambre; }
+  public void setTypeChambre(String typeChambre) { this.typeChambre = typeChambre; }
+
 
   public String getImageUrl() { return imageUrl; }
   public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }

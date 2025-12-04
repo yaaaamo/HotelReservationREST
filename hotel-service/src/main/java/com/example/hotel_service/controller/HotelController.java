@@ -1,10 +1,7 @@
 package com.example.hotel_service.controller;
 
 import com.example.hotel_service.model.*;
-import com.example.hotel_service.repository.AgencyRepository;
-import com.example.hotel_service.repository.ChambreRepository;
-import com.example.hotel_service.repository.HotelRepository;
-import com.example.hotel_service.repository.ReservationRepository;
+import com.example.hotel_service.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -31,13 +28,22 @@ public class HotelController {
   @Autowired
   private AgencyRepository agencyRepository;
 
+  @Autowired
+  private AvailabilityWindowRepository availabilityWindowRepository;
+
+
   @Value("${hotel.code}")
   private String hotelCode;
 
-
-
-
   private static final String uri = "hotelservice/api";
+
+  private boolean overlap(LocalDate start1, LocalDate end1,
+                          LocalDate start2, LocalDate end2) {
+    // [start1, end1) intersecte [start2, end2) ?
+    return !start1.isAfter(end2.minusDays(1)) && !start2.isAfter(end1.minusDays(1));
+  }
+
+
 
   @GetMapping(uri+"/hotels")
   public List<Hotel> getAllHotels(){
@@ -66,20 +72,27 @@ public class HotelController {
     LocalDate fin   = request.getDateFin();
     int nbPers      = request.getNbPersonnes();
 
-    double factor = agency.getReductionFactor();  // 🔥 here
+    double factor = agency.getReductionFactor();
 
     List<AvailabilityOffer> offers = new ArrayList<>();
-    List<Chambre> chambres = chambreRepository.findAll();
 
 
-    for (Chambre c : chambres) {
-      if (c.getNombreLits() >= nbPers) {
+    List<AvailabilityWindow> windows =
+            availabilityWindowRepository
+                    .findByStartDateLessThanEqualAndEndDateGreaterThanEqual(fin, debut);
+
+    for (AvailabilityWindow win : windows) {
+      Chambre c = win.getChambre();
+
+
+      if (c.getNombreLits() >= nbPers && win.getQuantity() > 0) {
         Hotel h = c.getHotel();
 
         AvailabilityOffer offer = new AvailabilityOffer();
         offer.setHotelId(h.getId());
         offer.setHotelName(h.getNom());
         offer.setNbLits(c.getNombreLits());
+
         offer.setDateDebut(debut);
         offer.setDateFin(fin);
 
@@ -89,14 +102,13 @@ public class HotelController {
 
         double basePrice = prixParNuit * nbNuits;
         double finalPrice = basePrice * factor;
-
         offer.setPrix(finalPrice);
 
         String roomCode = "R" + c.getNumero();
         String offerId = hotelCode + "-" + roomCode;
         offer.setOfferId(offerId);
         offer.setImageUrl(c.getImageUrl());
-
+        offer.setTypeChambre(c.getTypeChambre());
 
         offers.add(offer);
       }
@@ -104,6 +116,7 @@ public class HotelController {
 
     return offers;
   }
+
 
 
 
@@ -168,11 +181,4 @@ public class HotelController {
             "Réservation confirmée",
             res.getReference());
   }
-
-
-
-
-
-
-
 }

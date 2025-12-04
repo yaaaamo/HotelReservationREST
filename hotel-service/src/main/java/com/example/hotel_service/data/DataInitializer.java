@@ -1,9 +1,11 @@
 package com.example.hotel_service.data;
 
 import com.example.hotel_service.model.Agency;
+import com.example.hotel_service.model.AvailabilityWindow;
 import com.example.hotel_service.model.Chambre;
 import com.example.hotel_service.model.Hotel;
 import com.example.hotel_service.repository.AgencyRepository;
+import com.example.hotel_service.repository.AvailabilityWindowRepository;
 import com.example.hotel_service.repository.HotelRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.time.LocalDate;
 
 @Configuration
 public class DataInitializer {
@@ -46,7 +50,7 @@ public class DataInitializer {
   private String roomImageUrl;
 
   @Bean
-  CommandLineRunner initDatabase(HotelRepository hotelRepo) {
+  CommandLineRunner initDatabase(HotelRepository hotelRepo, AvailabilityWindowRepository winRepo) {
     return args -> {
 
       if (hotelRepo.count() == 0) {
@@ -70,6 +74,7 @@ public class DataInitializer {
         Chambre c301 = new Chambre("301", "SUITE", 2, 200.0);
         Chambre c401 = new Chambre("401", "FAMILIALE", 4, 250.0);
 
+
         // même image pour tout le monde
         c101.setImageUrl(roomImageUrl);
         c102.setImageUrl(roomImageUrl);
@@ -87,6 +92,26 @@ public class DataInitializer {
         hotel.addChambre(c401);
 
         hotelRepo.save(hotel);
+        winRepo.save(new AvailabilityWindow(
+                LocalDate.of(2025, 12, 1),
+                LocalDate.of(2025, 12, 5),
+                1,
+                c101
+        ));
+        winRepo.save(new AvailabilityWindow(
+                LocalDate.of(2025, 12, 5),
+                LocalDate.of(2025, 12, 10),
+                1,
+                c101
+        ));
+
+
+        winRepo.save(new AvailabilityWindow(
+                LocalDate.of(2025, 12, 1),
+                LocalDate.of(2025, 12, 10),
+                1,
+                c401
+        ));
 
         logger.info("Hôtel créé: {} ({} étoiles) à {}", hotelName, hotelStars, hotelVille);
       } else {

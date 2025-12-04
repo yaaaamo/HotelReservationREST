@@ -5,7 +5,6 @@ import java.time.LocalDate;
 public class BookingRequest {
 
   private String agenceId;
-  private String login;
   private String password;
 
   private String offerId;
@@ -35,9 +34,7 @@ public class BookingRequest {
 
   public String getAgenceId() { return agenceId; }
   public void setAgenceId(String agenceId) { this.agenceId = agenceId; }
-
-  public String getLogin() { return login; }
-  public void setLogin(String login) { this.login = login; }
+  
 
   public String getPassword() { return password; }
   public void setPassword(String password) { this.password = password; }
