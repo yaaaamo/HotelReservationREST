@@ -6,6 +6,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="comparateur-service" />
         <module name="agence-service" />
         <module name="hotel-service" />
       </profile>
@@ -14,6 +15,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="agence-service" options="-parameters" />
+      <module name="comparateur-service" options="-parameters" />
       <module name="hotel-service" options="-parameters" />
     </option>
   </component>

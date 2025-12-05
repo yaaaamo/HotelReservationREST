@@ -6,6 +6,7 @@
       <list>
         <option value="$PROJECT_DIR$/hotel-service/pom.xml" />
         <option value="$PROJECT_DIR$/agence-service/pom.xml" />
+        <option value="$PROJECT_DIR$/comparateur-service/pom.xml" />
       </list>
     </option>
   </component>
