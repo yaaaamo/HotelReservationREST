@@ -236,6 +236,7 @@ public class HotelController {
             "Réservation confirmée",
             res.getReference());
   }
+
   @GetMapping(uri + "/reservations")
   public List<ReservationDTO> getAllReservations() {
     List<Reservation> reservations = reservationRepository.findAll();
@@ -243,6 +244,14 @@ public class HotelController {
             .map(ReservationDTO::fromEntity)
             .collect(Collectors.toList());
   }
+
+  @GetMapping(uri + "/reservations/{id}")
+  public ReservationDTO getReservationById(@PathVariable Long id) {
+    Reservation res = reservationRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    return ReservationDTO.fromEntity(res);
+  }
+
 
 
   @GetMapping(uri + "/reservations/agency/{agencyId}")

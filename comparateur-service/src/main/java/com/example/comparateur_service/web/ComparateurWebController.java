@@ -166,9 +166,17 @@ public class ComparateurWebController {
           for (ReservationView res : reservations) {
             if (reference.equals(res.getReference())) {
               res.setAgenceServiceUrl(agenceUrl);
+
+              // HATEOAS
+              String selfApiUrl = res.getLink("self");
+
               model.addAttribute("reservation", res);
-              model.addAttribute("agencyColor",
-                      AGENCY_COLORS.getOrDefault(res.getAgenceId(), AGENCY_COLORS.get("UNKNOWN")));
+              model.addAttribute(
+                      "agencyColor",
+                      AGENCY_COLORS.getOrDefault(res.getAgenceId(), AGENCY_COLORS.get("UNKNOWN"))
+              );
+              model.addAttribute("reservationApiUrl", selfApiUrl);
+
               return "reservation-detail";
             }
           }
@@ -181,6 +189,8 @@ public class ComparateurWebController {
     model.addAttribute("error", "Reservation not found: " + reference);
     return "reservation-detail";
   }
+
+
 
 
   // Recherche d'offres

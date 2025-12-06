@@ -1,7 +1,15 @@
 package com.example.agence_service.model;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReservationDTO {
 
   private Long id;
@@ -21,8 +29,40 @@ public class ReservationDTO {
   private String hotelNom;
   private int hotelEtoiles;
   private String hotelVille;
+  @JsonAlias({ "_links", "links" })
+  private List<HalLink> links;
+
+  public List<HalLink> getLinks() {
+    return links;
+  }
+
 
   public ReservationDTO() {}
+
+
+
+  public void setLinks(List<HalLink> links) {
+    this.links = links;
+  }
+
+  public static class HalLink {
+    private String rel;
+    private String href;
+
+    public String getRel() {
+      return rel;
+    }
+    public void setRel(String rel) {
+      this.rel = rel;
+    }
+
+    public String getHref() {
+      return href;
+    }
+    public void setHref(String href) {
+      this.href = href;
+    }
+  }
 
 
   public Long getId() { return id; }

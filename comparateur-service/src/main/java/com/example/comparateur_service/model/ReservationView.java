@@ -1,6 +1,14 @@
 package com.example.comparateur_service.model;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReservationView {
 
   private Long id;
@@ -23,6 +31,47 @@ public class ReservationView {
 
   // Additional field to track which agency service this came from
   private String agenceServiceUrl;
+
+  @JsonAlias({ "_links", "links" })
+  private List<HalLink> links;
+
+  public List<HalLink> getLinks() {
+    return links;
+  }
+
+  public void setLinks(List<HalLink> links) {
+    this.links = links;
+  }
+
+  // HATEOAS
+  public String getLink(String rel) {
+    if (links == null) return null;
+    for (HalLink link : links) {
+      if (rel.equals(link.getRel())) {
+        return link.getHref();
+      }
+    }
+    return null;
+  }
+
+  public static class HalLink {
+    private String rel;
+    private String href;
+
+    public String getRel() {
+      return rel;
+    }
+    public void setRel(String rel) {
+      this.rel = rel;
+    }
+
+    public String getHref() {
+      return href;
+    }
+    public void setHref(String href) {
+      this.href = href;
+    }
+  }
 
   public ReservationView() {}
 

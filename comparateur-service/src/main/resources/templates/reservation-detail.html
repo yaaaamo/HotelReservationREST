@@ -229,23 +229,39 @@
                 </div>
             </div>
 
-            <!-- Quick Links -->
+
             <div class="card detail-card mt-3">
                 <div class="card-body">
-                    <h6><i class="bi bi-link-45deg"></i> Liens rapides</h6>
+                    <h6><i class="bi bi-link-45deg"></i> Liens rapides (API HATEOAS)</h6>
                     <div class="list-group list-group-flush">
-                        <a href="/reservations" class="list-group-item list-group-item-action">
-                            <i class="bi bi-list-ul"></i> Toutes les réservations
+
+                        <!-- Self link -->
+                        <a th:if="${reservation.getLink('self') != null}"
+                           th:href="${reservation.getLink('self')}"
+                           class="list-group-item list-group-item-action">
+                            <i class="bi bi-eye"></i> Voir cette réservation (self)
                         </a>
-                        <a href="/calendar" class="list-group-item list-group-item-action">
-                            <i class="bi bi-calendar3"></i> Calendrier
+
+                        <!-- All reservations -->
+                        <a th:if="${reservation.getLink('all-reservations') != null}"
+                           th:href="${reservation.getLink('all-reservations')}"
+                           class="list-group-item list-group-item-action">
+                            <i class="bi bi-list-ul"></i> Toutes les réservations (API)
                         </a>
-                        <a href="/" class="list-group-item list-group-item-action">
-                            <i class="bi bi-search"></i> Nouvelle recherche
+
+                        <!-- Agency reservations -->
+                        <a th:if="${reservation.getLink('agency-reservations') != null}"
+                           th:href="${reservation.getLink('agency-reservations')}"
+                           class="list-group-item list-group-item-action">
+                            <i class="bi bi-people"></i> Réservations de l'agence
                         </a>
+
+
                     </div>
                 </div>
             </div>
+
+
         </div>
     </div>
 </div>

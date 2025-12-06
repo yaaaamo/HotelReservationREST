@@ -1,8 +1,11 @@
 package com.example.hotel_service.model;
+import org.springframework.hateoas.RepresentationModel;
+import com.example.hotel_service.controller.HotelController;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
-public class ReservationDTO {
+public class ReservationDTO extends RepresentationModel<ReservationDTO> {
 
   private Long id;
   private String reference;
@@ -48,8 +51,29 @@ public class ReservationDTO {
         dto.setHotelVille(r.getChambre().getHotel().getVille());
       }
     }
+
+    // Add HATEOAS links
+    dto.addLinks();
+
     return dto;
   }
+
+  private void addLinks() {
+    // Self = this reservation
+    add(linkTo(methodOn(HotelController.class)
+            .getReservationById(this.id)).withSelfRel());
+
+    // Collection link
+    add(linkTo(methodOn(HotelController.class)
+            .getAllReservations()).withRel("all-reservations"));
+
+    if (this.agenceId != null) {
+      add(linkTo(methodOn(HotelController.class)
+              .getReservationsByAgency(this.agenceId)).withRel("agency-reservations"));
+    }
+
+  }
+
 
 
   public Long getId() { return id; }
