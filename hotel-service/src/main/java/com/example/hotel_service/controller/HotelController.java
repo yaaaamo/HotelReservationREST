@@ -1,5 +1,4 @@
 package com.example.hotel_service.controller;
-
 import com.example.hotel_service.model.*;
 import com.example.hotel_service.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,11 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 public class HotelController {
@@ -111,12 +110,9 @@ public class HotelController {
         continue;
       }
 
-
-
       if (c.getNombreLits() < nbPers) {
         continue;
       }
-
 
       LocalDate effStart = debut.isAfter(win.getStartDate()) ? debut : win.getStartDate();
       LocalDate effEnd   = fin.isBefore(win.getEndDate()) ? fin : win.getEndDate();
@@ -133,10 +129,6 @@ public class HotelController {
       if (remaining <= 0) {
         continue;
       }
-
-
-
-
 
       AvailabilityOffer offer = new AvailabilityOffer();
       offer.setHotelId(h.getId());
@@ -182,10 +174,6 @@ public class HotelController {
 
     return offers;
   }
-
-
-
-
 
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(uri + "/reservations")
@@ -247,5 +235,32 @@ public class HotelController {
     return new BookingResponse(true,
             "Réservation confirmée",
             res.getReference());
+  }
+  @GetMapping(uri + "/reservations")
+  public List<ReservationDTO> getAllReservations() {
+    List<Reservation> reservations = reservationRepository.findAll();
+    return reservations.stream()
+            .map(ReservationDTO::fromEntity)
+            .collect(Collectors.toList());
+  }
+
+
+  @GetMapping(uri + "/reservations/agency/{agencyId}")
+  public List<ReservationDTO> getReservationsByAgency(@PathVariable String agencyId) {
+    List<Reservation> reservations = reservationRepository.findByAgenceId(agencyId);
+    return reservations.stream()
+            .map(ReservationDTO::fromEntity)
+            .collect(Collectors.toList());
+  }
+
+
+  @GetMapping(uri + "/reservations/range")
+  public List<ReservationDTO> getReservationsByDateRange(
+          @RequestParam LocalDate start,
+          @RequestParam LocalDate end) {
+    List<Reservation> reservations = reservationRepository.findByDateRange(start, end);
+    return reservations.stream()
+            .map(ReservationDTO::fromEntity)
+            .collect(Collectors.toList());
   }
 }

@@ -1,8 +1,10 @@
 package com.example.comparateur_service.web;
+
 import com.example.comparateur_service.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,14 @@ public class ComparateurWebController {
   @Value("${agence2.base-url}")
   private String agence2BaseUrl;
 
+  // Color mapping for agencies
+  private static final Map<String, String> AGENCY_COLORS = new HashMap<>();
+  static {
+    AGENCY_COLORS.put("AGENCE1", "#667eea");  // Purple
+    AGENCY_COLORS.put("AGENCE2", "#28a745");  // Green
+    AGENCY_COLORS.put("UNKNOWN", "#6c757d");  // Gray
+  }
+
   // Page d'accueil - Formulaire de recherche
   @GetMapping("/")
   public String home(Model model) {
@@ -33,6 +43,147 @@ public class ComparateurWebController {
     model.addAttribute("today", LocalDate.now());
     return "index";
   }
+
+  // ============ CALENDAR PAGE ============
+  @GetMapping("/calendar")
+  public String showCalendar(Model model) {
+    model.addAttribute("today", LocalDate.now());
+    return "calendar";
+  }
+
+  // ============ CALENDAR API - Get all reservations as events ============
+  @GetMapping("/api/calendar/events")
+  @ResponseBody
+  public List<CalendarEvent> getCalendarEvents(
+          @RequestParam(required = false) String start,
+          @RequestParam(required = false) String end,
+          @RequestParam(required = false) String agencyFilter) {
+
+    List<CalendarEvent> allEvents = new ArrayList<>();
+    List<String> agenceUrls = Arrays.asList(agence1BaseUrl, agence2BaseUrl);
+
+    for (String agenceUrl : agenceUrls) {
+      try {
+        String uri = agenceUrl + "/reservations";
+        ReservationView[] reservations = proxy.getForObject(uri, ReservationView[].class);
+
+        if (reservations != null) {
+          for (ReservationView res : reservations) {
+            // Filter by agency if specified
+            if (agencyFilter != null && !agencyFilter.isEmpty()
+                    && !agencyFilter.equals(res.getAgenceId())) {
+              continue;
+            }
+
+            // Filter by date range if specified
+            if (start != null && end != null) {
+              LocalDate startDate = LocalDate.parse(start.substring(0, 10));
+              LocalDate endDate = LocalDate.parse(end.substring(0, 10));
+
+              if (res.getDateDepart().isBefore(startDate) ||
+                      res.getDateArrivee().isAfter(endDate)) {
+                continue;
+              }
+            }
+
+            res.setAgenceServiceUrl(agenceUrl);
+            String color = AGENCY_COLORS.getOrDefault(res.getAgenceId(), AGENCY_COLORS.get("UNKNOWN"));
+            CalendarEvent event = CalendarEvent.fromReservation(res, color);
+            allEvents.add(event);
+          }
+        }
+      } catch (Exception e) {
+        System.err.println("[WARN] Could not fetch reservations from agency: " + agenceUrl + " - " + e.getMessage());
+      }
+    }
+
+    return allEvents;
+  }
+
+
+  @GetMapping("/reservations")
+  public String showReservationsList(
+          @RequestParam(required = false) String agency,
+          Model model) {
+
+    List<ReservationView> allReservations = new ArrayList<>();
+    List<String> agenceUrls = Arrays.asList(agence1BaseUrl, agence2BaseUrl);
+    List<String> errors = new ArrayList<>();
+
+    for (String agenceUrl : agenceUrls) {
+      try {
+        String uri = agenceUrl + "/reservations";
+        ReservationView[] reservations = proxy.getForObject(uri, ReservationView[].class);
+
+        if (reservations != null) {
+          for (ReservationView res : reservations) {
+            if (agency != null && !agency.isEmpty() && !agency.equals(res.getAgenceId())) {
+              continue;
+            }
+            res.setAgenceServiceUrl(agenceUrl);
+            allReservations.add(res);
+          }
+        }
+      } catch (Exception e) {
+        errors.add("Could not fetch from agency: " + agenceUrl);
+      }
+    }
+
+    // Sort by arrival date
+    allReservations.sort(Comparator.comparing(ReservationView::getDateArrivee));
+
+    // Calculate statistics
+    Map<String, Integer> statsByAgency = new HashMap<>();
+    Map<String, Double> revenueByAgency = new HashMap<>();
+
+    for (ReservationView res : allReservations) {
+      String agId = res.getAgenceId() != null ? res.getAgenceId() : "UNKNOWN";
+      statsByAgency.merge(agId, 1, Integer::sum);
+      revenueByAgency.merge(agId, res.getMontantTotal(), Double::sum);
+    }
+
+    model.addAttribute("reservations", allReservations);
+    model.addAttribute("statsByAgency", statsByAgency);
+    model.addAttribute("revenueByAgency", revenueByAgency);
+    model.addAttribute("totalReservations", allReservations.size());
+    model.addAttribute("totalRevenue", allReservations.stream().mapToDouble(ReservationView::getMontantTotal).sum());
+    model.addAttribute("selectedAgency", agency);
+    model.addAttribute("errors", errors);
+    model.addAttribute("agencyColors", AGENCY_COLORS);
+
+    return "reservations";
+  }
+
+
+  @GetMapping("/reservations/{reference}")
+  public String showReservationDetail(@PathVariable String reference, Model model) {
+    List<String> agenceUrls = Arrays.asList(agence1BaseUrl, agence2BaseUrl);
+
+    for (String agenceUrl : agenceUrls) {
+      try {
+        String uri = agenceUrl + "/reservations";
+        ReservationView[] reservations = proxy.getForObject(uri, ReservationView[].class);
+
+        if (reservations != null) {
+          for (ReservationView res : reservations) {
+            if (reference.equals(res.getReference())) {
+              res.setAgenceServiceUrl(agenceUrl);
+              model.addAttribute("reservation", res);
+              model.addAttribute("agencyColor",
+                      AGENCY_COLORS.getOrDefault(res.getAgenceId(), AGENCY_COLORS.get("UNKNOWN")));
+              return "reservation-detail";
+            }
+          }
+        }
+      } catch (Exception e) {
+        // Continue to next agency
+      }
+    }
+
+    model.addAttribute("error", "Reservation not found: " + reference);
+    return "reservation-detail";
+  }
+
 
   // Recherche d'offres
   @PostMapping("/search")
