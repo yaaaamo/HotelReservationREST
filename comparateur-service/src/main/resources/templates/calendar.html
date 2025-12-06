@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier des Réservations - Comparateur d'Hôtels</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <style>
+        .fc-event {
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px 5px;
+        }
+        .fc-event:hover {
+            opacity: 0.85;
+        }
+        .fc-daygrid-event {
+            white-space: normal !important;
+        }
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+        #calendar {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .modal-body pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .stats-card {
+            border-left: 4px solid;
+        }
+        .stats-card.agence1 { border-color: #667eea; }
+        .stats-card.agence2 { border-color: #28a745; }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Chargement...</span>
+    </div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-building"></i> HotelCompare
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/"><i class="bi bi-search"></i> Rechercher</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/calendar"><i class="bi bi-calendar3"></i> Calendrier</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/reservations"><i class="bi bi-list-ul"></i> Réservations</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/agencies"><i class="bi bi-shop"></i> Agences</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-calendar3"></i> Calendrier des Réservations</h2>
+        <div>
+            <a href="/reservations" class="btn btn-outline-primary">
+                <i class="bi bi-list-ul"></i> Vue Liste
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters and Legend -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <label class="form-label"><i class="bi bi-funnel"></i> Filtrer par agence</label>
+                    <select class="form-select" id="agencyFilter">
+                        <option value="">Toutes les agences</option>
+                        <option value="AGENCE1">Agence Voyages Simples (AGENCE1)</option>
+                        <option value="AGENCE2">Agence Tourisme Go (AGENCE2)</option>
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Légende</label>
+                    <div>
+                        <span class="legend-item">
+                            <span class="legend-color" style="background: #667eea;"></span>
+                            AGENCE1 - Voyages Simples
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-color" style="background: #28a745;"></span>
+                            AGENCE2 - Tourisme Go
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4" id="statsRow">
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total Réservations</h5>
+                    <h2 id="totalReservations">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card agence1">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">AGENCE1</h5>
+                    <h2 id="countAgence1">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card agence2">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">AGENCE2</h5>
+                    <h2 id="countAgence2">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card" style="border-color: #ffc107;">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Revenu Total</h5>
+                    <h2 id="totalRevenue">-</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Container -->
+    <div class="card">
+        <div class="card-body">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- Empty State Message -->
+    <div class="alert alert-info mt-4" id="emptyMessage" style="display: none;">
+        <i class="bi bi-info-circle"></i> Aucune réservation trouvée.
+        <a href="/">Effectuez une recherche</a> pour créer des réservations.
+    </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar-check"></i> Détails de la Réservation
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <strong>Référence:</strong>
+                    <span id="modalReference" class="badge bg-secondary"></span>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <strong><i class="bi bi-calendar"></i> Arrivée:</strong>
+                        <p id="modalStart" class="mb-0"></p>
+                    </div>
+                    <div class="col-6">
+                        <strong><i class="bi bi-calendar-check"></i> Départ:</strong>
+                        <p id="modalEnd" class="mb-0"></p>
+                    </div>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <strong><i class="bi bi-person"></i> Client:</strong>
+                    <p id="modalClient" class="mb-0"></p>
+                </div>
+                <div class="mb-3">
+                    <strong><i class="bi bi-building"></i> Hôtel:</strong>
+                    <p id="modalHotel" class="mb-0"></p>
+                </div>
+                <div class="mb-3">
+                    <strong><i class="bi bi-door-open"></i> Chambre:</strong>
+                    <p id="modalRoom" class="mb-0"></p>
+                </div>
+                <div class="mb-3">
+                    <strong><i class="bi bi-shop"></i> Agence:</strong>
+                    <span id="modalAgency" class="badge"></span>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <strong class="text-success" style="font-size: 1.5rem;">
+                        <i class="bi bi-currency-euro"></i> <span id="modalAmount"></span> €
+                    </strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="modalDetailLink" href="#" class="btn btn-primary">
+                    <i class="bi bi-eye"></i> Voir Détails
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const agencyFilter = document.getElementById('agencyFilter');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+
+        let allEvents = [];
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'fr',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listMonth'
+            },
+            buttonText: {
+                today: "Aujourd'hui",
+                month: 'Mois',
+                week: 'Semaine',
+                list: 'Liste'
+            },
+            firstDay: 1, // Monday
+            navLinks: true,
+            editable: false,
+            selectable: false,
+            eventDisplay: 'block',
+            displayEventTime: false,
+
+            events: function(info, successCallback, failureCallback) {
+                loadingOverlay.style.display = 'flex';
+
+                const filter = agencyFilter.value;
+                let url = '/api/calendar/events?start=' + info.startStr + '&end=' + info.endStr;
+                if (filter) {
+                    url += '&agencyFilter=' + filter;
+                }
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(events => {
+                        allEvents = events;
+                        updateStatistics(events);
+                        successCallback(events);
+                        loadingOverlay.style.display = 'none';
+
+                        // Show/hide empty message
+                        document.getElementById('emptyMessage').style.display =
+                            events.length === 0 ? 'block' : 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error fetching events:', error);
+                        failureCallback(error);
+                        loadingOverlay.style.display = 'none';
+                    });
+            },
+
+            eventClick: function(info) {
+                const event = info.event;
+                const props = event.extendedProps;
+
+                document.getElementById('modalReference').textContent = props.reference || event.id;
+                document.getElementById('modalStart').textContent = formatDate(event.start);
+                document.getElementById('modalEnd').textContent = formatDate(new Date(event.end.getTime() - 86400000)); // Subtract 1 day (exclusive end)
+                document.getElementById('modalClient').textContent = props.clientName || '-';
+                document.getElementById('modalHotel').textContent = props.hotelName || '-';
+                document.getElementById('modalRoom').textContent = props.chambreNumero || '-';
+                document.getElementById('modalAmount').textContent = (props.montant || 0).toFixed(2);
+
+                const agencyBadge = document.getElementById('modalAgency');
+                agencyBadge.textContent = props.agenceId || '-';
+                agencyBadge.style.backgroundColor = event.backgroundColor;
+
+                document.getElementById('modalDetailLink').href = '/reservations/' + (props.reference || event.id);
+
+                eventModal.show();
+            },
+
+            eventDidMount: function(info) {
+                // Add tooltip
+                info.el.title = info.event.extendedProps.description || info.event.title;
+            }
+        });
+
+        calendar.render();
+
+        // Filter change handler
+        agencyFilter.addEventListener('change', function() {
+            calendar.refetchEvents();
+        });
+
+        function updateStatistics(events) {
+            let total = events.length;
+            let agence1 = 0;
+            let agence2 = 0;
+            let revenue = 0;
+
+            events.forEach(event => {
+                const agencyId = event.agenceId || (event.extendedProps && event.extendedProps.agenceId);
+                const amount = event.montant || (event.extendedProps && event.extendedProps.montant) || 0;
+
+                if (agencyId === 'AGENCE1') agence1++;
+                else if (agencyId === 'AGENCE2') agence2++;
+
+                revenue += amount;
+            });
+
+            document.getElementById('totalReservations').textContent = total;
+            document.getElementById('countAgence1').textContent = agence1;
+            document.getElementById('countAgence2').textContent = agence2;
+            document.getElementById('totalRevenue').textContent = revenue.toFixed(2) + ' €';
+        }
+
+        function formatDate(date) {
+            if (!date) return '-';
+            return new Date(date).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+    });
+</script>
+</body>
+</html>

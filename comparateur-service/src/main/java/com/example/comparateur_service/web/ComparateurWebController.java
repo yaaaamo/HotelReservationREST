@@ -1,10 +1,8 @@
 package com.example.comparateur_service.web;
-
 import com.example.comparateur_service.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -44,14 +42,14 @@ public class ComparateurWebController {
     return "index";
   }
 
-  // ============ CALENDAR PAGE ============
+  // calendar
   @GetMapping("/calendar")
   public String showCalendar(Model model) {
     model.addAttribute("today", LocalDate.now());
     return "calendar";
   }
 
-  // ============ CALENDAR API - Get all reservations as events ============
+  // get all reservations
   @GetMapping("/api/calendar/events")
   @ResponseBody
   public List<CalendarEvent> getCalendarEvents(

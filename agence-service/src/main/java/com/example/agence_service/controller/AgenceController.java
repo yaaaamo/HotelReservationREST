@@ -119,4 +119,27 @@ public class AgenceController {
   public AgenceInfo getInfo() {
     return new AgenceInfo(agenceId, agenceName);
   }
+
+  @GetMapping("/reservations")
+  public List<ReservationDTO> getAllReservations() {
+    List<ReservationDTO> allReservations = new ArrayList<>();
+    List<String> partnerBaseUrls = Arrays.asList(hotel1BaseUrl, hotel2BaseUrl);
+
+    // Query all hotels for reservations made by this agency
+    for (String hotelUrl : partnerBaseUrls) {
+      try {
+        // Get reservations filtered by this agency
+        String uri = hotelUrl + "/reservations/agency/" + agenceId;
+        ReservationDTO[] reservations = proxy.getForObject(uri, ReservationDTO[].class);
+
+        if (reservations != null) {
+          allReservations.addAll(Arrays.asList(reservations));
+        }
+      } catch (Exception e) {
+        System.err.println("[WARN] Could not fetch reservations from hotel: " + hotelUrl + " - " + e.getMessage());
+      }
+    }
+
+    return allReservations;
+  }
 }

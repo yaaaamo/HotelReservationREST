@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détail Réservation - Comparateur d'Hôtels</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .detail-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .info-label {
+            font-weight: 600;
+            color: #6c757d;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .info-value {
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+        .agency-header {
+            padding: 10px 20px;
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+        .price-display {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-building"></i> HotelCompare
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/"><i class="bi bi-search"></i> Rechercher</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/calendar"><i class="bi bi-calendar3"></i> Calendrier</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/reservations"><i class="bi bi-list-ul"></i> Réservations</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/agencies"><i class="bi bi-shop"></i> Agences</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <!-- Back Button -->
+    <div class="mb-4">
+        <a href="/reservations" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+        </a>
+        <a href="/calendar" class="btn btn-outline-primary ms-2">
+            <i class="bi bi-calendar3"></i> Voir le calendrier
+        </a>
+    </div>
+
+    <!-- Error State -->
+    <div th:if="${error}" class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span th:text="${error}">Erreur</span>
+    </div>
+
+    <!-- Reservation Details -->
+    <div th:if="${reservation}" class="row">
+        <div class="col-lg-8">
+            <div class="card detail-card">
+                <!-- Agency Header -->
+                <div class="agency-header" th:style="'background-color: ' + ${agencyColor}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="bi bi-bookmark-check"></i> Réservation
+                            </h5>
+                            <small th:text="${reservation.agenceId}">AGENCE</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-light text-dark fs-6" th:text="${reservation.reference}">REF-XXX</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Hotel Info -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h4>
+                                <i class="bi bi-building"></i>
+                                <span th:text="${reservation.hotelNom}">Hôtel</span>
+                                <span class="text-warning ms-2">
+                                    <span th:each="i : ${#numbers.sequence(1, reservation.hotelEtoiles)}">★</span>
+                                </span>
+                            </h4>
+                            <p class="text-muted mb-0">
+                                <i class="bi bi-geo-alt"></i>
+                                <span th:text="${reservation.hotelVille}">Ville</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Dates -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="info-label">
+                                <i class="bi bi-calendar"></i> Date d'arrivée
+                            </div>
+                            <p class="info-value" th:text="${#temporals.format(reservation.dateArrivee, 'EEEE dd MMMM yyyy')}">
+                                Lundi 01 janvier 2025
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">
+                                <i class="bi bi-calendar-check"></i> Date de départ
+                            </div>
+                            <p class="info-value" th:text="${#temporals.format(reservation.dateDepart, 'EEEE dd MMMM yyyy')}">
+                                Vendredi 05 janvier 2025
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Room Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="info-label">
+                                <i class="bi bi-door-open"></i> Chambre
+                            </div>
+                            <p class="info-value">
+                                N° <span th:text="${reservation.chambreNumero}">101</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">
+                                <i class="bi bi-house"></i> Type
+                            </div>
+                            <p class="info-value" th:text="${reservation.chambreType}">Standard</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Client Info -->
+                    <h5 class="mb-3"><i class="bi bi-person"></i> Informations Client</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-label">Nom complet</div>
+                            <p class="info-value" th:text="${reservation.fullName}">Jean Dupont</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Email</div>
+                            <p class="info-value">
+                                <a th:href="'mailto:' + ${reservation.emailClient}" th:text="${reservation.emailClient}">
+                                    email@example.com
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Téléphone</div>
+                            <p class="info-value" th:text="${reservation.telephoneClient} ?: '-'">+33 6 12 34 56 78</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-label">Statut</div>
+                            <p class="info-value">
+                                <span class="badge bg-success" th:text="${reservation.statut}">CONFIRMEE</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Summary -->
+        <div class="col-lg-4">
+            <div class="card detail-card">
+                <div class="card-body">
+                    <div class="price-display mb-4">
+                        <h6 class="mb-1">Montant Total</h6>
+                        <h2 class="mb-0" th:text="${#numbers.formatDecimal(reservation.montantTotal, 1, 2)} + ' €'">
+                            0.00 €
+                        </h2>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="info-label">Réservé le</div>
+                        <p class="info-value" th:text="${#temporals.format(reservation.dateReservation, 'dd/MM/yyyy HH:mm')}">
+                            01/01/2025 14:30
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="info-label">Agence</div>
+                        <p class="info-value">
+                            <span class="badge"
+                                  th:style="'background-color: ' + ${agencyColor}"
+                                  th:text="${reservation.agenceId}">AGENCE</span>
+                        </p>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="window.print()">
+                            <i class="bi bi-printer"></i> Imprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card detail-card mt-3">
+                <div class="card-body">
+                    <h6><i class="bi bi-link-45deg"></i> Liens rapides</h6>
+                    <div class="list-group list-group-flush">
+                        <a href="/reservations" class="list-group-item list-group-item-action">
+                            <i class="bi bi-list-ul"></i> Toutes les réservations
+                        </a>
+                        <a href="/calendar" class="list-group-item list-group-item-action">
+                            <i class="bi bi-calendar3"></i> Calendrier
+                        </a>
+                        <a href="/" class="list-group-item list-group-item-action">
+                            <i class="bi bi-search"></i> Nouvelle recherche
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
