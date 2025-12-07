@@ -8,7 +8,6 @@ import org.springframework.web.client.RestTemplate;
 
 @Component
 public class AgenceServiceClient {
-
   @Bean
   public RestTemplate generateRestTemplate(RestTemplateBuilder builder) {
     return builder.build();
