@@ -272,4 +272,43 @@ public class HotelController {
             .map(ReservationDTO::fromEntity)
             .collect(Collectors.toList());
   }
+
+  @PutMapping(uri + "/reservations/{id}")
+  public ReservationDTO updateReservationClientInfo(
+          @PathVariable Long id,
+          @RequestBody ReservationUpdateRequest updateRequest) {
+
+    Reservation res = reservationRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    if (updateRequest.getNomClient() != null) {
+      res.setNomClient(updateRequest.getNomClient());
+    }
+    if (updateRequest.getPrenomClient() != null) {
+      res.setPrenomClient(updateRequest.getPrenomClient());
+    }
+    if (updateRequest.getEmailClient() != null) {
+      res.setEmailClient(updateRequest.getEmailClient());
+    }
+    if (updateRequest.getTelephoneClient() != null) {
+      res.setTelephoneClient(updateRequest.getTelephoneClient());
+    }
+
+    reservationRepository.save(res);
+
+    return ReservationDTO.fromEntity(res);
+  }
+
+  @DeleteMapping(uri + "/reservations/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteReservation(@PathVariable Long id) {
+
+    Reservation res = reservationRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    reservationRepository.delete(res);
+  }
+
+
+
 }
